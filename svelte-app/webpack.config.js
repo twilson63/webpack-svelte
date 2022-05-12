@@ -3,6 +3,8 @@ const path = require('path');
 const webpack = require('webpack')
 const mode = process.env.NODE_ENV || 'development';
 const prod = mode === 'production';
+const [schema, host] = process.env.GITPOD_WORKSPACE_URL.split('://')
+const publicUrl = `8080-${host}`
 
 module.exports = {
 	entry: {
@@ -75,6 +77,7 @@ module.exports = {
 	],
 	devtool: prod ? false : 'source-map',
 	devServer: {
-		hot: true
+		hot: true,
+		public: publicUrl
 	}
 };

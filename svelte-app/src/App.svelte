@@ -4,7 +4,7 @@
 	import { WalletConnection } from "near-api-js";
 	import { onMount } from "svelte";
 	const { connect, keyStores } = nearAPI;
-	let wallet, signedIn, text;
+	let wallet, signedIn, text, amount, balance;
 
 	console.log({ WebBundlr });
 
@@ -47,9 +47,10 @@
 		wallet.signOut();
 		signedIn = false;
 	}
+
 	async function createPost() {
 		const bundlr = new WebBundlr(
-			"https://node2.bundlr.network",
+			"https://node1.bundlr.network",
 			"near",
 			wallet
 		);
@@ -61,9 +62,38 @@
 		console.log("tx", tx);
 		await tx.sign();
 		console.log("tx", tx);
-		await tx.upload().catch((e) => {
+		const result = await tx.upload().catch((e) => {
 			console.log(`Error posting message - ${e.stackTrace ?? e}`);
 		});
+		console.log(result.data.id);
+	}
+
+	async function getBalance() {
+		const bundlr = new WebBundlr(
+			"https://node1.bundlr.network",
+			"near",
+			wallet
+		);
+		await bundlr.ready();
+		balance = (await bundlr.getLoadedBalance()).toString();
+
+		console.log("price", (await bundlr.getPrice(100)).toString());
+		// console.log("address", bundlr.address);
+		// console.log(
+		// 	"getLoadedBalance",
+		// 	(await bundlr.getLoadedBalance()).toString()
+		// );
+	}
+
+	async function fund() {
+		const bundlr = new WebBundlr(
+			"https://node1.bundlr.network",
+			"near",
+			wallet
+		);
+		await bundlr.ready();
+		await bundlr.fund(amount);
+		amount = "";
 	}
 </script>
 
@@ -73,6 +103,12 @@
 	<h2>{wallet.getAccountId()}</h2>
 	<input bind:value={text} />
 	<button on:click={createPost}>Create Post</button>
+	<hr />
+	{balance}
+	<button on:click={getBalance}>Get Balance</button>
+	<hr />
+	<input bind:value={amount} />
+	<button on:click={fund}>Fund Bundlr</button>
 {:else}
 	<button on:click={doConnect}>Connect</button>
 {/if}
